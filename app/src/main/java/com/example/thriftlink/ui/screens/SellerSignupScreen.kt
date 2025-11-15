@@ -4,32 +4,26 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-
-// REQUIRED IMPORTS TO FIX ERRORS:
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import com.example.thriftlink.data.UserManager
+import com.example.thriftlink.data.UserDataManager
+import com.example.thriftlink.data.User
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SellerSignUpScreen(onSignUpSuccess: () -> Unit, onBackClick: () -> Unit) {
+fun SellerSignUpScreen(
+    onSignUpSuccess: () -> Unit,
+    onBackClick: () -> Unit
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var shopName by remember { mutableStateOf("") }
-
+    var businessName by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val userManager = UserDataManager(context)
+    var isLoading by remember { mutableStateOf(false) }
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Seller Sign Up") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back to Login")
-                    }
-                }
-            )
-        }
+        topBar = { TopAppBar(title = { Text("Seller Sign Up") }) }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -38,20 +32,10 @@ fun SellerSignUpScreen(onSignUpSuccess: () -> Unit, onBackClick: () -> Unit) {
                 .fillMaxSize(),
             verticalArrangement = Arrangement.Center
         ) {
-            Text(text = "Create a Seller Account", style = MaterialTheme.typography.headlineMedium)
-            Spacer(Modifier.height(24.dp))
-
-            OutlinedTextField(
-                value = shopName,
-                onValueChange = { shopName = it },
-                label = { Text("Shop Name") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(Modifier.height(8.dp))
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Email") },
+                label = { Text("Business Email") },
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(8.dp))
@@ -62,18 +46,35 @@ fun SellerSignUpScreen(onSignUpSuccess: () -> Unit, onBackClick: () -> Unit) {
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth()
             )
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(
+                value = businessName,
+                onValueChange = { businessName = it },
+                label = { Text("Business Name") },
+                modifier = Modifier.fillMaxWidth()
+            )
 
             Spacer(Modifier.height(20.dp))
+            Button(
+                onClick = {
 
-            Button(onClick = {
-                // TODO: Add actual validation and sign up logic here
-                if (shopName.isNotBlank() && email.isNotBlank() && password.isNotBlank()) {
-                    UserManager.register(UserManager.UserType.SELLER, email)
-                    onSignUpSuccess()
+                    if (email.isNotBlank() && password.isNotBlank() && businessName.isNotBlank()) {
+                        // Send businessName, email, and password to your ViewModel/API
+                        onSignUpSuccess()
+                    } else {
+                        // Show error: "Please fill in all fields."
+                    }
+                },
+                enabled = !isLoading,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
+                } else {
+                    Text("Sign Up")
                 }
-            }, modifier = Modifier.fillMaxWidth()) {
-                Text("Sign Up as Seller")
-            }
         }
     }
-}
+}}

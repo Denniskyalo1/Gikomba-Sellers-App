@@ -4,31 +4,28 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.example.thriftlink.data.UserDataManager
+import com.example.thriftlink.data.User
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import com.example.thriftlink.data.UserManager
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BuyerSignUpScreen(onSignUpSuccess: () -> Unit, onBackClick: () -> Unit) {
+fun BuyerSignUpScreen(
+    onSignUpSuccess: (User) -> Unit,
+    onBackClick: () -> Unit
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var name by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf("") }
+
+    val context = LocalContext.current
+    val userManager = UserDataManager(context)
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Buyer Sign Up") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back to Login")
-                    }
-                }
-            )
-        }
+        topBar = { TopAppBar(title = { Text("Buyer Sign Up") }) }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -37,16 +34,6 @@ fun BuyerSignUpScreen(onSignUpSuccess: () -> Unit, onBackClick: () -> Unit) {
                 .fillMaxSize(),
             verticalArrangement = Arrangement.Center
         ) {
-            Text(text = "Create a Buyer Account", style = MaterialTheme.typography.headlineMedium)
-            Spacer(Modifier.height(24.dp))
-
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Full Name") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(Modifier.height(8.dp))
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -61,26 +48,47 @@ fun BuyerSignUpScreen(onSignUpSuccess: () -> Unit, onBackClick: () -> Unit) {
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth()
             )
-            Spacer(Modifier.height(8.dp))
-            OutlinedTextField(
-                value = confirmPassword,
-                onValueChange = { confirmPassword = it },
-                label = { Text("Confirm Password") },
-                visualTransformation = PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth()
-            )
-
             Spacer(Modifier.height(20.dp))
+            Button(
+                onClick = {
+                    // 1. Clear any previous error message
+                    errorMessage = ""
 
-            Button(onClick = {
-                // TODO: Add actual validation and sign up logic here
-                if (password == confirmPassword && email.isNotBlank()) {
-                    UserManager.register(UserManager.UserType.BUYER, email)
-                    onSignUpSuccess()
-                }
-            }, modifier = Modifier.fillMaxWidth()) {
+                    // 2. Perform the registration logic
+                    val registeredUser = userManager.register(
+                        UserDataManager.UserType.BUYER,
+                        email,
+                        password
+                    )
+
+                    // 3. Update state and navigate based on the result
+                    if (registeredUser != null) {
+                        onSignUpSuccess(registeredUser)
+                    } else {
+                        // Set the error message here
+                        errorMessage = "Sign up failed. Please check your inputs."
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text("Sign Up")
+            }
+            //DISPLAY THE ERROR TEXT HERE (in the composable context)
+            if (errorMessage.isNotEmpty()) {
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    text = errorMessage,
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+            TextButton(onClick = onBackClick) {
+                Text("Back to Login")
             }
         }
     }
 }
+
+

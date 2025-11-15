@@ -43,6 +43,10 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.ui:ui-text:1.6.0")
+    implementation(libs.androidx.benchmark.traceprocessor)
+    implementation(libs.androidx.foundation)
+    implementation(libs.material3)
+    implementation(libs.androidx.runtime)
     debugImplementation("androidx.compose.ui:ui-tooling")
 
 

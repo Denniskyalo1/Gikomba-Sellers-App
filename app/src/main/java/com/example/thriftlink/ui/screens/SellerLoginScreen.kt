@@ -4,15 +4,23 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.example.thriftlink.data.UserManager
+import com.example.thriftlink.data.UserDataManager
+import com.example.thriftlink.data.User
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SellerLoginScreen(onLoginSuccess: () -> Unit, onSignUpClick: () -> Unit) {
+fun SellerLoginScreen(
+    onLoginSuccess: (User) -> Unit, // return User object
+    onSignUpClick: () -> Unit
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+
+    val context = LocalContext.current
+    val userManager = UserDataManager(context)
 
     Scaffold(topBar = { TopAppBar(title = { Text("Seller Login") }) }) { padding ->
         Column(
@@ -28,7 +36,9 @@ fun SellerLoginScreen(onLoginSuccess: () -> Unit, onSignUpClick: () -> Unit) {
                 label = { Text("Business Email") },
                 modifier = Modifier.fillMaxWidth()
             )
+
             Spacer(Modifier.height(8.dp))
+
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -36,15 +46,25 @@ fun SellerLoginScreen(onLoginSuccess: () -> Unit, onSignUpClick: () -> Unit) {
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth()
             )
+
             Spacer(Modifier.height(20.dp))
-            Button(onClick = {
-                UserManager.login(UserManager.UserType.SELLER, email)
-                onLoginSuccess()
-            }, modifier = Modifier.fillMaxWidth()) {
+
+            Button(
+                onClick = {
+                    val user = userManager.login(UserDataManager.UserType.SELLER, email, password)
+                    onLoginSuccess(user)
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text("Login")
             }
+
             Spacer(Modifier.height(8.dp))
-            TextButton(onClick = onSignUpClick) { Text("Don't have a seller account? Sign up") }
+
+            TextButton(onClick = onSignUpClick) {
+                Text("Don't have a seller account? Sign up")
+            }
         }
     }
 }
+
