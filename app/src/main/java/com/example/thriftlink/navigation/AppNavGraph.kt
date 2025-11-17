@@ -1,12 +1,20 @@
 package com.example.thriftlink.navigation
 
-import SellerDashboardScreen
-import androidx.compose.material3.Text
+
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import androidx.navigation.NavType
 import com.example.thriftlink.ui.screens.*
+import com.example.thriftlink.ui.screens.AddProductScreen
+import com.example.thriftlink.ui.screens.EarningsScreen
+import com.example.thriftlink.ui.screens.EditProductScreen
+import com.example.thriftlink.ui.screens.PaymentHistoryScreen
+import com.example.thriftlink.ui.screens.SellerDashboardScreen
+import com.example.thriftlink.ui.screens.SellerStatsScreen
+import com.example.thriftlink.ui.viewmodel.AnalyticsViewModel
 import com.example.thriftlink.viewmodel.ProductViewModel
 
 
@@ -16,7 +24,8 @@ fun AppNavGraph(
     navController: NavHostController,
     viewModel: ProductViewModel,
     isDarkTheme: Boolean,
-    onThemeToggle: () -> Unit
+    onThemeToggle: () -> Unit,
+    analyticsViewModel: AnalyticsViewModel
 )
 {
 
@@ -108,12 +117,6 @@ fun AppNavGraph(
             )
         }
 
-        // SELLER DASHBOARD ROUTE
-        composable("seller_dashboard") {
-            // You MUST replace this with your actual screen for sellers
-            SellerDashboardScreen()
-        }
-
         //  CATALOG & DETAIL
         composable("catalog") {
             CatalogScreen(
@@ -162,5 +165,80 @@ fun AppNavGraph(
                 navController = navController
             )
         }
+// --------------------------------------------------
+        // SELLER DASHBOARD
+        // --------------------------------------------------
+        composable("seller_dashboard") {
+            SellerDashboardScreen(
+                productViewModel = viewModel,
+                analyticsViewModel = analyticsViewModel,
+                onEarningsClick = { navController.navigate("seller_earnings") },
+                onAddProductClick = { navController.navigate("seller_add_product") },
+                onOpenProduct = { id -> navController.navigate("seller_edit_product/$id") }
+            )
+        }
+
+        // --------------------------------------------------
+        // SELLER EARNINGS
+        // --------------------------------------------------
+        composable("seller_earnings") {
+            EarningsScreen(
+                analyticsViewModel = analyticsViewModel,
+                onBack = { navController.popBackStack() },
+                onOpenStats = { navController.navigate("seller_stats") },
+                onPaymentHistory = { navController.navigate("seller_payment_history") }
+            )
+        }
+
+        // --------------------------------------------------
+        // SELLER STATS
+        // --------------------------------------------------
+        composable("seller_stats") {
+            SellerStatsScreen(
+                analyticsViewModel = analyticsViewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        // --------------------------------------------------
+        // ADD PRODUCT
+        // --------------------------------------------------
+        // ADD PRODUCT (ensure it uses productViewModel)
+        composable("seller_add_product") {
+            AddProductScreen(
+                productViewModel = viewModel,
+                onFinish = { navController.popBackStack() },
+                currentSellerName = "Seller",              // replace with actual logged-in seller name if available
+                currentSellerId = "user-seller-1"
+            )
+        }
+
+        // --------------------------------------------------
+        // PAYMENT HISTORY
+        // --------------------------------------------------
+        composable("seller_payment_history") {
+            PaymentHistoryScreen(
+                analyticsViewModel = analyticsViewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        // --------------------------------------------------
+        // EDIT PRODUCT
+        // --------------------------------------------------
+        composable(
+            "seller_edit_product/{productId}",
+            arguments = listOf(navArgument("productId") { type = NavType.IntType })
+        ) { entry ->
+            val id = entry.arguments!!.getInt("productId")
+            EditProductScreen(
+                productId = id,
+                productViewModel = viewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
     }
 }
+
+
+

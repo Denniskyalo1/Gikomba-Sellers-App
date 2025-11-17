@@ -90,7 +90,11 @@ fun OrdersScreen(
         if (showDeleteDialog && itemToDelete != null) {
             DeleteDialog(
                 onConfirm = {
-                    viewModel.removeFromOrders(itemToDelete!!)
+                    if (selectedTab == "Bought")
+                        viewModel.removeFromBought(itemToDelete!!)
+                    else
+                        viewModel.removeFromWishlist(itemToDelete!!)
+
                     showDeleteDialog = false
                 },
                 onCancel = { showDeleteDialog = false }
